@@ -54,7 +54,7 @@ def clean_users(raw_users: list) -> pd.DataFrame:
         logger.warning("No user documents to clean.")
         return pd.DataFrame(columns=["user_id", "username", "email", "fullname", "created_at"])
 
-    df = pd.json_normalize(raw_users)
+    df = pd.DataFrame(raw_users)
     df["user_id"] = df["_id"].apply(extract_oid)
     df["created_at"] = df["createdAt"].apply(extract_date)
 
@@ -68,17 +68,24 @@ def clean_users(raw_users: list) -> pd.DataFrame:
     if dropped:
         logger.info(f"Dropped {dropped} invalid/duplicate user rows during cleaning.")
 
-    df["signup_month"] = df["created_at"].dt.to_period("M").astype(str)
+    df["signup_month"] = df["created_at"].dt.tz_localize(None).dt.to_period("M").astype(str)
     return df.reset_index(drop=True)
 
 
 def clean_videos(raw_videos: list, users_df: pd.DataFrame) -> pd.DataFrame:
     """Flattens the videos collection, joins owner -> username, and adds derived columns."""
+    empty_columns = ["video_id", "title", "duration", "duration_minutes", "views", "category",
+                     "ispublished", "owner_id", "username", "created_at", "upload_month",
+                     "video_age_days", "views_per_day"]
     if not raw_videos:
-        logger.warning("No video documents to clean.")
-        return pd.DataFrame()
+        logger.warning(
+            "No video documents found in videos_raw.json. "
+            "Check that seed.js ran successfully and MONGO_DB_NAME in .env "
+            "matches the database it seeded."
+        )
+        return pd.DataFrame(columns=empty_columns)
 
-    df = pd.json_normalize(raw_videos)
+    df = pd.DataFrame(raw_videos)
     df["video_id"] = df["_id"].apply(extract_oid)
     df["owner_id"] = df["owner"].apply(extract_oid) if "owner" in df.columns else None
     df["created_at"] = df["createdAt"].apply(extract_date) if "createdAt" in df.columns else pd.NaT
@@ -106,11 +113,12 @@ def clean_videos(raw_videos: list, users_df: pd.DataFrame) -> pd.DataFrame:
             logger.warning(f"{orphaned} videos reference an owner_id not found in users collection.")
 
     # Derived columns for analysis
-    now = pd.Timestamp(datetime.now())
+    # created_at from MongoDB is timezone-aware (UTC); "now" must match or subtraction fails
+    now = pd.Timestamp.now(tz=df["created_at"].dt.tz) if df["created_at"].dt.tz else pd.Timestamp.now()
     df["video_age_days"] = (now - df["created_at"]).dt.days
     df["views_per_day"] = (df["views"] / df["video_age_days"].replace(0, 1)).round(2)
     df["duration_minutes"] = (df["duration"] / 60).round(1)
-    df["upload_month"] = df["created_at"].dt.to_period("M").astype(str)
+    df["upload_month"] = df["created_at"].dt.tz_localize(None).dt.to_period("M").astype(str)
 
     return df.reset_index(drop=True)
 
