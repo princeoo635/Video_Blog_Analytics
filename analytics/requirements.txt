@@ -1,0 +1,6 @@
+pymongo>=4.8.0
+pandas>=2.2.3
+mysql-connector-python>=9.0.0
+python-dotenv>=1.0.1
+jupyter>=1.0.0
+matplotlib>=3.9.0
