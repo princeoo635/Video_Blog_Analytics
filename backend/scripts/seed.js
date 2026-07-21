@@ -18,12 +18,12 @@ import { faker } from "@faker-js/faker";
 import dotenv from "dotenv";
 
 // ⚠️ Adjust these two paths to match your project structure
-import { User } from "../models/user.model.js";
-import { Video } from "../models/video.model.js";
+import { User } from "../src/models/user.model.js";
+import { Video } from "../src/models/video.model.js";
 
 dotenv.config();
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/videoblog";
+const MONGO_URI = process.env.MONGODB_URL ;
 
 const NUM_USERS = 80;
 const NUM_VIDEOS = 450;
