@@ -1,0 +1,46 @@
+# ===== Environment / secrets =====
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.seed
+
+# ===== Node (backend/) =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json.bak
+.npm/
+
+# ===== Python (analytics/) =====
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+.pytest_cache/
+
+# ===== Data files (don't commit raw/processed data or DB dumps) =====
+analytics/data/raw/*
+analytics/data/processed/*
+!analytics/data/raw/.gitkeep
+!analytics/data/processed/.gitkeep
+*.sqlite3
+*.db
+
+# ===== Dashboard binaries (large/binary files) =====
+analytics/dashboard/*.pbix
+analytics/dashboard/*.twbx
+
+# ===== OS / editor junk =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# ===== Logs =====
+*.log
+logs/
